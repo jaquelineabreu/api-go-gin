@@ -10,7 +10,8 @@ import (
 
 func ExibeTodosAlunos(c *gin.Context){
 	var alunos []models.Aluno
-	c.JSON(200, models.Alunos)
+	database.DB.Find(&alunos)
+	c.JSON(200, alunos)
 }
 
 func Saudacao(c *gin.Context){
@@ -21,8 +22,7 @@ func Saudacao(c *gin.Context){
 }
 
 func CriaNovoAluno(c *gin.Context){
-	var aluno models.Aluno
-
+	var aluno models.Aluno	
 	if err := c.ShouldBindJSON(&aluno); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error()})
