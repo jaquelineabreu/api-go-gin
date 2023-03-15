@@ -10,14 +10,27 @@ import(
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"fmt"
-
+	"github.com/jaquelineabreu/api-go-gin/models"
 ) 
+
+var ID int
 
 
 func RotasDeTeste() *gin.Engine{
 	rotas := gin.Default()
 
 	return rotas
+}
+
+func CriaAlunoMock(){
+	aluno := models.Aluno{Nome: "Nome do aluno Teste", CPF: "12345678901", RG:"098765432"}
+	database.DB.Create(&aluno)
+	ID = int(aluno.ID)
+}
+
+func DeletaAlunoMock(){
+	var aluno models.Aluno
+	database.DB.Delete(&aluno, ID)
 }
 
 func TestVerificaStatusCodeComParametro(t *testing.T){
@@ -39,16 +52,13 @@ func TestVerificaStatusCodeComParametro(t *testing.T){
 
 func TestListandoAlunos(t *testing.T){
 	database.ConectaComBancoDeDados()
+	CriaAlunoMock()
+	defer DeletaAlunoMock()
 	r := RotasDeTeste()
 	r.GET("/alunos", controllers.ExibeTodosAlunos)	
 	req, _ := http.NewRequest("GET","/alunos", nil)
 	resposta := httptest.NewRecorder()
 	r.ServeHTTP(resposta, req)
-
 	assert.Equal(t, http.StatusOK, resposta.Code)
-
-	fmt.Println(resposta.Body)
-
-
-
+	//fmt.Println(resposta.Body)
 }
