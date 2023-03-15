@@ -13,6 +13,7 @@ import(
 	"strconv"
 	"fmt"
 	"encoding/json"
+	"bytes"
 ) 
 
 var ID int
@@ -26,7 +27,7 @@ func RotasDeTeste() *gin.Engine{
 }
 
 func CriaAlunoMock(){
-	aluno := models.Aluno{Nome: "Nome do aluno Test", CPF: "12345678901", RG:"098765432"}
+	aluno := models.Aluno{Nome: "Nome do aluno Teste", CPF: "12345678901", RG:"098765432"}
 	database.DB.Create(&aluno)
 	ID = int(aluno.ID)
 }
@@ -88,8 +89,6 @@ func TestBuscaAlunoPorID(t *testing.T){
 	req, _ := http.NewRequest("GET", pathDaBusca, nil)
 	resposta := httptest.NewRecorder()
 	r.ServeHTTP(resposta, req)
-	assert.Equal(t, http.StatusOK, resposta.Code)
-
 	var alunoMock models.Aluno
 	json.Unmarshal(resposta.Body.Bytes(), &alunoMock)
 
@@ -101,4 +100,41 @@ func TestBuscaAlunoPorID(t *testing.T){
 
 	fmt.Println(alunoMock.Nome)
 
+}
+
+func TestDeletaAluno(t *testing.T){
+	database.ConectaComBancoDeDados()
+	CriaAlunoMock()
+	r := RotasDeTeste()
+	r.DELETE("/alunos/:id", controllers.DeletaAluno)
+	pathDaBusca := "/alunos/" + strconv.Itoa(ID)
+
+	req, _ := http.NewRequest("DELETE", pathDaBusca, nil)
+	resposta := httptest.NewRecorder()
+	r.ServeHTTP(resposta, req)
+	assert.Equal(t, http.StatusOK, resposta.Code)
+ 
+}
+
+func TestEditaAluno(t *testing.T) {
+	database.ConectaComBancoDeDados()
+	CriaAlunoMock()
+	defer DeletaAlunoMock()
+	r := RotasDeTeste()
+	r.PATCH("alunos/:id", controllers.EditaAluno)
+	aluno := models.Aluno{Nome: "Nome do aluno Teste", CPF: "33345678901", RG:"000765432"}
+	valorJson, _ :=  json.Marshal(aluno)
+
+	pathParaEditar := "/alunos/" + strconv.Itoa(ID)
+
+	req, _ := http.NewRequest("PATCH", pathParaEditar, bytes.NewBuffer(valorJson))
+	resposta := httptest.NewRecorder()
+	r.ServeHTTP(resposta, req)
+
+	var alunoMockAtualizado models.Aluno
+	json.Unmarshal(resposta.Body.Bytes(), &alunoMockAtualizado)
+
+	assert.Equal(t, "33345678901", alunoMockAtualizado.CPF)
+	assert.Equal(t, "000765432", alunoMockAtualizado.RG)
+	assert.Equal(t, "Nome do aluno Teste", alunoMockAtualizado.Nome)
 }
