@@ -4,11 +4,13 @@ import(
 	"testing"
 	"github.com/gin-gonic/gin"
 	"github.com/jaquelineabreu/api-go-gin/controllers"
+	"github.com/jaquelineabreu/api-go-gin/database"
 	"net/http"
 	"net/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"fmt"
+
 ) 
 
 
@@ -33,4 +35,20 @@ func TestVerificaStatusCodeComParametro(t *testing.T){
 	//Verificando corpo da requisição
 	respostaBody, _ := ioutil.ReadAll(resposta.Body)
 	assert.Equal(t, mockDaResposta, string(respostaBody))
+}
+
+func TestListandoAlunos(t *testing.T){
+	database.ConectaComBancoDeDados()
+	r := RotasDeTeste()
+	r.GET("/alunos", controllers.ExibeTodosAlunos)	
+	req, _ := http.NewRequest("GET","/alunos", nil)
+	resposta := httptest.NewRecorder()
+	r.ServeHTTP(resposta, req)
+
+	assert.Equal(t, http.StatusOK, resposta.Code)
+
+	fmt.Println(resposta.Body)
+
+
+
 }
