@@ -10,6 +10,7 @@ import (
 func HandleRequests(){
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
+	r.Static("/assets","./assets")
 	r.GET("/:nome",controllers.Saudacao)	
 	r.GET("/alunos", controllers.ExibeTodosAlunos)	
 	r.POST("/alunos", controllers.CriaNovoAluno)
